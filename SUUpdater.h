@@ -54,6 +54,14 @@
 // and Sparkle will check for updates and report back its findings verbosely.
 - (IBAction)checkForUpdates:(id)sender;
 
+//  Checks for updates and, if available, immediately downloads and installs them.
+//  A progress dialog is shown but the user will never be prompted to read the
+//  release notes.
+//
+//  You may want to respond to the userDidCancelDownload delegate method in case
+//  the user clicks the "Cancel" button while the update is downloading.
+- (void)installUpdatesIfAvailable;
+
 // This kicks off an update meant to be programmatically initiated. That is, it will display no UI unless it actually finds an update,
 // in which case it proceeds as usual. If the fully automated updating is turned on, however, this will invoke that behavior, and if an
 // update is found, it will be downloaded and prepped for installation.
@@ -118,6 +126,9 @@ extern NSString *const SUUpdaterAppcastNotificationKey;
 
 // Sent when a valid update is not found.
 - (void)updaterDidNotFindUpdate:(SUUpdater *)update;
+
+// Called when the user clicks the cancel button while an update is being downloaded.
+- (void)userDidCancelDownload:(SUUpdater *)updater;
 
 // Sent immediately before installing the specified update.
 - (void)updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update;

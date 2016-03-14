@@ -17,8 +17,21 @@
 
 @implementation SUUIBasedUpdateDriver
 
+- (instancetype)initWithUpdater:(SUUpdater *)anUpdater
+{
+	if ((self = [super initWithUpdater:anUpdater])) {
+		self.automaticallyInstallUpdates = NO;
+	}
+	return self;
+}
+
 - (void)didFindValidUpdate
 {
+	if (self.automaticallyInstallUpdates) {
+                [self updateAlert:nil finishedWithChoice:SUInstallUpdateChoice];
+		return;
+	}
+
 	updateAlert = [[SUUpdateAlert alloc] initWithAppcastItem:updateItem host:host];
 	[updateAlert setDelegate:self];
 	
@@ -52,9 +65,11 @@
 		[[updater delegate] updaterDidNotFindUpdate:updater];
 	[[NSNotificationCenter defaultCenter] postNotificationName:SUUpdaterDidNotFindUpdateNotification object:updater];
 	
-	NSAlert *alert = [NSAlert alertWithMessageText:SULocalizedString(@"You're up-to-date!", nil) defaultButton:SULocalizedString(@"OK", nil) alternateButton:nil otherButton:nil informativeTextWithFormat:SULocalizedString(@"%@ %@ is currently the newest version available.", nil), [host name], [host displayVersion]];
-	[self showModalAlert:alert];
-	[self abortUpdate];
+	if (!self.automaticallyInstallUpdates) {
+		NSAlert *alert = [NSAlert alertWithMessageText:SULocalizedString(@"You're up-to-date!", nil) defaultButton:SULocalizedString(@"OK", nil) alternateButton:nil otherButton:nil informativeTextWithFormat:SULocalizedString(@"%@ %@ is currently the newest version available.", nil), [host name], [host displayVersion]];
+		[self showModalAlert:alert];
+		[self abortUpdate];
+        }
 }
 
 - (void)applicationDidBecomeActive:(NSNotification *)aNotification
@@ -123,8 +138,12 @@
 
 - (IBAction)cancelDownload: (id)sender
 {
-	if (download)
+	if (download) {
 		[download cancel];
+		if ([[updater delegate] respondsToSelector:@selector(userDidCancelDownload:)]) {
+			[[updater delegate] userDidCancelDownload:updater];
+		}
+        }
 	[self abortUpdate];
 }
 
@@ -150,6 +169,11 @@
 
 - (void)unarchiverDidFinish:(SUUnarchiver *)ua
 {
+	if (self.automaticallyInstallUpdates) {
+		 [self installWithToolAndRelaunch:YES];
+		 return;
+	 }
+
 	[statusController beginActionWithTitle:SULocalizedString(@"Ready to Install", nil) maxProgressValue:1.0 statusText:nil];
 	[statusController setProgressValue:1.0]; // Fill the bar.
 	[statusController setButtonEnabled:YES];

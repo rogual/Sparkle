@@ -315,6 +315,17 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 	[self checkForUpdatesWithDriver:[[[SUProbingUpdateDriver alloc] initWithUpdater:self] autorelease]];
 }
 
+- (void)installUpdatesIfAvailable
+{
+    if (driver && [driver isInterruptible]) {
+        [driver abortUpdate];
+    }
+
+    SUUIBasedUpdateDriver *theUpdateDriver = [[SUUserInitiatedUpdateDriver alloc] initWithUpdater:self];
+    theUpdateDriver.automaticallyInstallUpdates = YES;
+    [self checkForUpdatesWithDriver:theUpdateDriver];
+}
+
 - (void)checkForUpdatesWithDriver:(SUUpdateDriver *)d
 {
 	if ([self updateInProgress]) { return; }

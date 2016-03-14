@@ -21,6 +21,8 @@
 	SUUpdateAlert *updateAlert;
 }
 
+@property (nonatomic, assign) BOOL automaticallyInstallUpdates;
+
 - (void)showModalAlert:(NSAlert *)alert;
 - (IBAction)cancelDownload: (id)sender;
 - (void)installAndRestart: (id)sender;
